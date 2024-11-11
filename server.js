@@ -7,31 +7,40 @@ const cors = require("cors");
 const app = express();
 app.use(express.json());
 
-const allowedOrigins = [
-  "http://localhost:3000", // Allow localhost for development
-  "https://expenger.netlify.app", // Allow Netlify frontend
-  "44.226.145.213", // Static IP from Render
-  "54.187.200.255", // Static IP from Render
-  "34.213.214.55", // Static IP from Render
-  "35.164.95.156", // Static IP from Render
-  "44.230.95.183", // Static IP from Render
-  "44.229.200.200", // Static IP from Render
-];
+// const allowedOrigins = [
+//   "http://localhost:3000", // Allow localhost for development
+//   "https://expenger.netlify.app", // Allow Netlify frontend
+//   "44.226.145.213", // Static IP from Render
+//   "54.187.200.255", // Static IP from Render
+//   "34.213.214.55", // Static IP from Render
+//   "35.164.95.156", // Static IP from Render
+//   "44.230.95.183", // Static IP from Render
+//   "44.229.200.200", // Static IP from Render
+// ];
+
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       // Allow requests from specific origins (including Render IPs)
+//       if (
+//         !origin ||
+//         allowedOrigins.includes(origin) ||
+//         allowedOrigins.includes(req.ip)
+//       ) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     },
+//   })
+// );
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow requests from specific origins (including Render IPs)
-      if (
-        !origin ||
-        allowedOrigins.includes(origin) ||
-        allowedOrigins.includes(req.ip)
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: ["http://localhost:3000"], // Update this with your Render frontend URL
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -133,14 +142,12 @@ app.post("/register", async (req, res) => {
 // });
 
 app.post("/login", async (req, res) => {
-  console.log("Login request body:", req.body); // Log incoming request body
-  const testuser = await User.findOne({ username: "bhavin" });
-  console.log("User from DB:", testuser);
-
   try {
     const { username, password } = req.body;
-    const user = await User.findOne({ username });
+    console.log("Login request received for username:", username);
+    console.log("Login request body:", req.body);
 
+    const user = await User.findOne({ username });
     if (!user) {
       console.log("User not found");
       return res.status(400).json({ message: "Invalid credentials" });
@@ -152,7 +159,7 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ userId: user._id }, jwtSecret, {
+    const token = jwt.sign({ userId: user._id }, "your_jwt_secret", {
       expiresIn: "1h",
     });
     res.json({
