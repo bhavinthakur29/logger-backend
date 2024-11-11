@@ -6,40 +6,26 @@ const cors = require("cors");
 
 const app = express();
 app.use(express.json());
+
 app.use(
   cors({
-    origin: "http://localhost:3000" || "https://expenger.netlify.apps",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: false,
+    origin: ["http://localhost:3000", "https://expenger.netlify.app"], // add your frontend URLs here
   })
 );
 
-// Add these headers manually
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-  );
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-  next();
-});
-
-// Set strictQuery option
+// Set strictQuery option for Mongoose
 mongoose.set("strictQuery", false);
+
+// MongoDB URI and JWT Secret from environment variables
+const mongoUri =
+  process.env.MONGODB_URI ||
+  "mongodb+srv://bhavinthakur:loggerbybhavin@expenselogger.fgjbk.mongodb.net/?retryWrites=true&w=majority&appName=expenseLogger";
+console.log(mongoUri);
+const jwtSecret = process.env.JWT_SECRET;
 
 // Connect to MongoDB
 mongoose
-  .connect(
-    "mongodb+srv://bhavinthakur:loggerbybhavin@expenselogger.fgjbk.mongodb.net/?retryWrites=true&w=majority&appName=expenseLogger",
-    {
-      serverSelectionTimeoutMS: 5000,
-    }
-  )
+  .connect(mongoUri, { serverSelectionTimeoutMS: 5000 })
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Could not connect to MongoDB", err));
 
@@ -71,7 +57,7 @@ const authenticate = (req, res, next) => {
     return res.status(401).json({ message: "Authentication required" });
 
   try {
-    const decoded = jwt.verify(token, "bhavin_thakur");
+    const decoded = jwt.verify(token, jwtSecret);
     req.userId = decoded.userId;
     next();
   } catch (error) {
@@ -80,8 +66,12 @@ const authenticate = (req, res, next) => {
 };
 
 // Routes
-app.get("/test", (req, res) => {
-  res.json({ status: "Backend is working!" });
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+  });
 });
 
 app.post("/register", async (req, res) => {
@@ -106,7 +96,7 @@ app.post("/login", async (req, res) => {
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ userId: user._id }, "your_jwt_secret", {
+    const token = jwt.sign({ userId: user._id }, jwtSecret, {
       expiresIn: "1h",
     });
     res.json({
