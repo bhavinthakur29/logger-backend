@@ -108,7 +108,33 @@ app.post("/register", async (req, res) => {
   }
 });
 
+// app.post("/login", async (req, res) => {
+//   try {
+//     const { username, password } = req.body;
+//     const user = await User.findOne({ username });
+//     if (!user) return res.status(400).json({ message: "Invalid credentials" });
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch)
+//       return res.status(400).json({ message: "Invalid credentials" });
+
+//     const token = jwt.sign({ userId: user._id }, jwtSecret, {
+//       expiresIn: "1h",
+//     });
+//     res.json({
+//       token,
+//       userId: user._id,
+//       name: user.name,
+//       currency: user.currency,
+//     });
+//   } catch (error) {
+//     res.status(400).json({ message: "Login failed" });
+//   }
+// });
+
 app.post("/login", async (req, res) => {
+  console.log("Login request body:", req.body); // Log the request body
+
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
@@ -128,6 +154,7 @@ app.post("/login", async (req, res) => {
       currency: user.currency,
     });
   } catch (error) {
+    console.error("Login error:", error); // Log error details
     res.status(400).json({ message: "Login failed" });
   }
 });
