@@ -1,19 +1,15 @@
-// config/db.js
-
 const mongoose = require("mongoose");
+require("dotenv").config();
 
 const connect = () => {
-  const mongoURI = process.env.MONGO_URI; // Get URI from environment variables
+  const mongoURI = process.env.MONGODB_URI; // Get URI from environment variables
   if (!mongoURI) {
-    console.error("MONGO_URI is not defined in the .env file");
+    console.error("MONGO_URI is not defined in the .env file\n", mongoURI);
     return;
   }
 
   mongoose
-    .connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    })
+    .connect(mongoURI)
     .then(() => {
       console.log("Connected to MongoDB");
     })
