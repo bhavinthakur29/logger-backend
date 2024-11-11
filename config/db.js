@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 
 const connect = () => {
   mongoose
-    .connect(process.env.MONGO_URI || "your_mongo_connection_string", {
+    .connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     })
