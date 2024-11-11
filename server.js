@@ -7,9 +7,31 @@ const cors = require("cors");
 const app = express();
 app.use(express.json());
 
+const allowedOrigins = [
+  "http://localhost:3000", // Allow localhost for development
+  "https://expenger.netlify.app", // Allow Netlify frontend
+  "44.226.145.213", // Static IP from Render
+  "54.187.200.255", // Static IP from Render
+  "34.213.214.55", // Static IP from Render
+  "35.164.95.156", // Static IP from Render
+  "44.230.95.183", // Static IP from Render
+  "44.229.200.200", // Static IP from Render
+];
+
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://expenger.netlify.app"], // add your frontend URLs here
+    origin: function (origin, callback) {
+      // Allow requests from specific origins (including Render IPs)
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        allowedOrigins.includes(req.ip)
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
   })
 );
 
